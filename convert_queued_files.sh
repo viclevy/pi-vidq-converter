@@ -11,7 +11,7 @@ log() {
 # Delete recordings older than MAX_AGE_DAYS based on the date in the filename (YYYYMMDD_HHMMSS.mp4)
 cleanup_old_files() {
     local cutoff_date count=0
-    cutoff_date=$(date -d "-${MAX_AGE_DAYS} days" '+%Y%m%d')
+    cutoff_date=$(date -d @$(( $(date +%s) - MAX_AGE_DAYS * 86400 )) '+%Y%m%d')
 
     for f in "$WATCH_DIR"/*.mp4; do
         [ -e "$f" ] || continue
