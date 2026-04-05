@@ -8,13 +8,27 @@ log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"
 }
 
-# Delete recordings older than MAX_AGE_DAYS
+# Delete recordings older than MAX_AGE_DAYS based on the date in the filename (YYYYMMDD_HHMMSS.mp4)
 cleanup_old_files() {
-    local count
-    count=$(find "$WATCH_DIR" -maxdepth 1 -type f -name "*.mp4" -mtime +$MAX_AGE_DAYS | wc -l)
+    local cutoff_date count=0
+    cutoff_date=$(date -d "-${MAX_AGE_DAYS} days" '+%Y%m%d')
+
+    for f in "$WATCH_DIR"/*.mp4; do
+        [ -e "$f" ] || continue
+        local fname
+        fname=$(basename "$f")
+        local file_date="${fname%%_*}"
+        # Skip files whose names don't start with a valid 8-digit date
+        [[ "$file_date" =~ ^[0-9]{8}$ ]] || continue
+        if [ "$file_date" -lt "$cutoff_date" ]; then
+            log "Removing old file: $fname (recorded $file_date, cutoff $cutoff_date)"
+            rm "$f"
+            count=$((count + 1))
+        fi
+    done
+
     if [ "$count" -gt 0 ]; then
-        log "Removing $count file(s) older than $MAX_AGE_DAYS days"
-        find "$WATCH_DIR" -maxdepth 1 -type f -name "*.mp4" -mtime +$MAX_AGE_DAYS -print -delete
+        log "Removed $count file(s) older than $MAX_AGE_DAYS days"
     fi
 }
 

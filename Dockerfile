@@ -1,11 +1,6 @@
-FROM debian:bookworm-slim
+FROM alpine:3.21
 
-# Install required dependencies in a single layer
-RUN apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install -y --no-install-recommends inotify-tools ffmpeg && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache bash ffmpeg inotify-tools
 
 WORKDIR /app
 
